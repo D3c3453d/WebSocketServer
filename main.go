@@ -11,6 +11,8 @@ var wsUpgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
+var clients map[*websocket.Conn]bool
+
 func wsHandler(ctx *gin.Context) {
 	conn, err := wsUpgrader.Upgrade(ctx.Writer, ctx.Request, nil)
 	if err != nil {
@@ -18,7 +20,6 @@ func wsHandler(ctx *gin.Context) {
 		return
 	}
 
-	var clients map[*websocket.Conn]bool
 	clients[conn] = true
 
 	defer func(conn *websocket.Conn) {
@@ -31,19 +32,17 @@ func wsHandler(ctx *gin.Context) {
 	}(conn)
 
 	for {
-		messageType, message, err := conn.ReadMessage()
-		if err != nil {
-			logrus.Error("Error during message reading: ", err)
-		}
-		logrus.Infof("Received: %s", message)
 		for conn := range clients {
-			err := conn.WriteMessage(messageType, message)
+			messageType, message, err := conn.ReadMessage()
+			if err != nil {
+				logrus.Error("Error during message reading: ", err)
+			}
+
+			logrus.Infof("Received: %s", message)
+			err = conn.WriteMessage(messageType, message)
 			if err != nil {
 				logrus.Error("Error during message writing: ", err)
 			}
-		}
-		if err != nil {
-			logrus.Error("Error during message writing: ", err)
 		}
 	}
 }
