@@ -17,7 +17,7 @@ var clients = make(map[*websocket.Conn]struct{})
 
 func writeForAll(messageType int, message []byte) {
 	for conn := range clients {
-		logrus.Info("Write for: ", conn.RemoteAddr().String())
+		//logrus.Info("Write for: ", conn.RemoteAddr().String())
 		err := conn.WriteMessage(messageType, message)
 		if err != nil {
 			logrus.Error("Error during message writing: ", err)
@@ -27,7 +27,7 @@ func writeForAll(messageType int, message []byte) {
 
 func listener(conn *websocket.Conn) {
 	for {
-		logrus.Info("Listen for: ", conn.RemoteAddr().String())
+		//logrus.Info("Listen for: ", conn.RemoteAddr().String())
 		//conn.SetReadDeadline(time.Now().Add(time.Second * 1))
 		messageType, message, err := conn.ReadMessage()
 		if err != nil {
