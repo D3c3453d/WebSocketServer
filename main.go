@@ -11,30 +11,47 @@ var wsUpgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-var clients = make(map[*websocket.Conn]struct{})
+//var clients = make(map[*websocket.Conn]struct{})
 
-//var clients = make(map[string]*websocket.Conn)
+var clients = make(map[string]*websocket.Conn)
 
-func writeForAll(messageType int, message []byte) {
-	for conn := range clients {
+func writeToAll(message []byte) {
+	for _, conn := range clients {
 		//logrus.Info("Write for: ", conn.RemoteAddr().String())
-		err := conn.WriteMessage(messageType, message)
+		err := conn.WriteMessage(1, message)
 		if err != nil {
 			logrus.Error("Error during message writing: ", err)
 		}
 	}
 }
 
-func listener(conn *websocket.Conn) {
+func writeToOne(message []byte, sender string, recipient string) {
+	//logrus.Info("Write for: ", conn.RemoteAddr().String())
+	recipientConn := clients[recipient]
+	if recipientConn == nil {
+		logrus.Error("Wrong recipient: ")
+		return
+	}
+	err := recipientConn.WriteMessage(1, []byte(sender))
+	err = recipientConn.WriteMessage(1, message)
+	if err != nil {
+		logrus.Error("Error during message writing: ", err)
+		return
+	}
+}
+
+func listener(sender string, conn *websocket.Conn) {
 	for {
 		//logrus.Info("Listen for: ", conn.RemoteAddr().String())
 		//conn.SetReadDeadline(time.Now().Add(time.Second * 1))
-		messageType, message, err := conn.ReadMessage()
+		_, username, err := conn.ReadMessage()
+		_, message, err := conn.ReadMessage()
 		if err != nil {
 			logrus.Warn("Error during message reading: ", err)
-		} else if message != nil {
+		} else if username != nil && message != nil {
 			logrus.Infof("Received from %s: %s", conn.RemoteAddr().String(), message)
-			writeForAll(messageType, message)
+			//writeToAll(message)
+			writeToOne(message, sender, string(username))
 		}
 	}
 }
@@ -44,14 +61,13 @@ func wsHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		logrus.Error("Error during connection upgrade: ", err)
 		return
-	} else {
-		logrus.Info("New connection: ", conn.RemoteAddr().String())
 	}
 
-	//clients[strconv.Itoa(int(time.Now().Unix()))] = conn
-	clients[conn] = struct{}{}
-	for conn := range clients {
-		go listener(conn)
+	_, usernameBytes, err := conn.ReadMessage()
+	logrus.Info("New connection: ", conn.RemoteAddr().String(), " Username: ", string(usernameBytes))
+	clients[string(usernameBytes)] = conn
+	for username, conn := range clients {
+		go listener(username, conn)
 	}
 }
 
