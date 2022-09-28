@@ -15,8 +15,8 @@ type service struct {
 	ChatRepo chat.RepositoryI
 }
 
-func NewService() *service {
-	return &service{}
+func NewService(ChatRepo chat.RepositoryI) *service {
+	return &service{ChatRepo: ChatRepo}
 }
 
 func (s *service) Chat(conn *websocket.Conn) error {
@@ -25,7 +25,11 @@ func (s *service) Chat(conn *websocket.Conn) error {
 		logrus.Error(err)
 		return err
 	}
-	s.ChatRepo.NewClient(string(usernameBytes), conn)
+	err = s.ChatRepo.NewClient(string(usernameBytes), conn)
+	if err != nil {
+		logrus.Error(err)
+		return err
+	}
 	logrus.Info("New connection: ", conn.RemoteAddr().String(), " Username: ", string(usernameBytes))
 
 	clients, _ := s.ChatRepo.GetClients()
