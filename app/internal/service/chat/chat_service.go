@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
 	"strings"
+	"time"
 )
 
 type ServiceI interface {
@@ -41,16 +42,21 @@ func (s *service) Chat(conn *websocket.Conn) error {
 	return nil
 }
 
+var pongWait = 5 * time.Second
+
 func (s *service) listener(sender string, conn *websocket.Conn) {
 	for {
 		//logrus.Info("Listen for: ", conn.RemoteAddr().String())
 		//conn.SetReadDeadline(time.Now().Add(time.Second * 1))
+		//conn.SetReadDeadline(time.Now().Add(pongWait))
+		//conn.SetPongHandler(func(string) error { conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 		_, messageBytes, err := conn.ReadMessage()
+		logrus.Info(string(messageBytes))
 		message := strings.SplitN(string(messageBytes), ": ", 2) //recipient: text
 		if err != nil {
 			logrus.Warn("Error during message reading: ", err)
 		} else if message[0] != "" && message[1] != "" {
-			logrus.Infof("Received from %s: %s", conn.RemoteAddr().String(), message)
+			logrus.Infof("Message from %s to %s: %s", sender, message[0], message[1])
 			//writeToAll(message)
 			s.writeToOne(message, sender)
 		}

@@ -13,7 +13,7 @@ import (
 func Run(router *gin.Engine) error {
 
 	server := &http.Server{
-		Addr:    "localhost:7077",
+		Addr:    "localhost:7070",
 		Handler: router,
 	}
 

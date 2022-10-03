@@ -8,18 +8,18 @@ type RepositoryI interface {
 }
 
 type repository struct {
-	clients map[string]*websocket.Conn
+	clients *map[string]*websocket.Conn
 }
 
-func NewRepository(clients map[string]*websocket.Conn) *repository {
+func NewRepository(clients *map[string]*websocket.Conn) *repository {
 	return &repository{clients: clients}
 }
 
 func (r *repository) NewClient(username string, conn *websocket.Conn) error {
-	r.clients[username] = conn
+	(*r.clients)[username] = conn
 	return nil
 }
 
 func (r *repository) GetClients() (*map[string]*websocket.Conn, error) {
-	return &r.clients, nil
+	return r.clients, nil
 }

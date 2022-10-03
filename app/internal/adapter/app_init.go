@@ -27,7 +27,7 @@ func InitApp() {
 
 func InitServices(clients map[string]*websocket.Conn) *ServicePool {
 	return &ServicePool{
-		ChatService: chat.NewService(chatRepo.NewRepository(clients)),
+		ChatService: chat.NewService(chatRepo.NewRepository(&clients)),
 	}
 }
 
