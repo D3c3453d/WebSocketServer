@@ -1,7 +1,11 @@
 package main
 
-import "WebSocketServer/app/internal/adapter"
+import (
+	"WebSocketServer/app/config"
+	"WebSocketServer/app/internal/adapter"
+)
 
 func main() {
+	config.InitConfig()
 	adapter.InitApp()
 }

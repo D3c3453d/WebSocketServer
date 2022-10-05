@@ -1,2 +1,3 @@
-.idea
-WebSocketServer.iml
+/.idea
+/WebSocketServer.iml
+/db/db_data

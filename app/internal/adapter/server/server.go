@@ -1,6 +1,7 @@
 package server
 
 import (
+	"WebSocketServer/app/config"
 	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -12,8 +13,10 @@ import (
 
 func Run(router *gin.Engine) error {
 
+	serverConfig := config.GetServerConfig()
+
 	server := &http.Server{
-		Addr:    "localhost:7070",
+		Addr:    serverConfig.Bind + ":" + serverConfig.Port,
 		Handler: router,
 	}
 

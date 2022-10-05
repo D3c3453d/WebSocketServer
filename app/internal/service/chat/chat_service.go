@@ -1,6 +1,7 @@
 package chat
 
 import (
+	"WebSocketServer/app/internal/entity"
 	"WebSocketServer/app/internal/repository/chat"
 	"github.com/gorilla/websocket"
 	"github.com/sirupsen/logrus"
@@ -78,8 +79,8 @@ func (s *service) writeToOne(message []string, sender string) {
 	//logrus.Info("Write for: ", conn.RemoteAddr().String())
 	clients, _ := s.ChatRepo.GetClients()
 	recipientConn := (*clients)[message[0]]
-	if recipientConn == nil {
-		logrus.Error("Wrong recipient: ")
+	if recipientConn == nil || !s.ChatRepo.CheckFriend(&entity.FriendCheck{User: sender, Friend: message[0]}) {
+		logrus.Error("Wrong recipient\n")
 		return
 	}
 	err := recipientConn.WriteMessage(1, []byte(sender+": "+message[1]))
